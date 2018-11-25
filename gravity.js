@@ -28,11 +28,11 @@ var sunMass = 19884700000 * massUnit;
 
 var things = [
  //   new Thing([0, 0], [2, 1], 1, 5, 'red'),
-    new Thing([20, 90], [15 * Math.pow(10,3), 13 * Math.pow(10,3)], earthMass, 5, 'green'),
-    new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], sunMass, 15, 'yellow'),
+ new Thing([solarSystem.width/3, solarSystem.height/3], [15 * Math.pow(10,3), 13 * Math.pow(10,3)], moonMass, 1, 'grey'),
+ new Thing([20, 90], [15 * Math.pow(10,3), 13 * Math.pow(10,3)], earthMass, 5, 'green'),
+ new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], sunMass, 15, 'yellow')
 //    new Thing([50, 200], [4, 2], 2, 20, 'violet'),
- //   new Thing([100, 70], [1, 3], moonMass, 1, 'grey')
-]
+    ]
 
 var edges = [0, solarSystem.width, 0, solarSystem.height];
 
