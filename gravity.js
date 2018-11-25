@@ -199,7 +199,8 @@ function draw(thing) {
     drawAt(thing.position, thing.velocity, thing.acceleration, thing.size, thing.color);
 }
 
-var velocityScale= 100;
+var velocityScale= Math.pow(10,-3);
+var accelerationScale= Math.pow( 10, 5);
 
 function drawAt(position, velocity, acceleration, size, color) {
     var scale= {
@@ -213,9 +214,23 @@ function drawAt(position, velocity, acceleration, size, color) {
     }
 
     var velocityVector = {
-        x: centre.x + velocity[0] * scale.width * velocityScale,
-        y: centre.y + velocity[1] * scale.width * velocityScale
+        x: centre.x + velocity[0] * velocityScale,
+        y: centre.y + velocity[1] * velocityScale
     }
+
+    var accelerationVector = {
+        x: velocityVector.x + acceleration[0] * accelerationScale,
+        y: velocityVector.y + acceleration[1] * accelerationScale
+    }
+
+
+    //draw velocity and the acceleration vectors
+    context.beginPath();
+    context.lineWidth=1;
+    context.moveTo( centre.x, centre.y);
+    context.lineTo( velocityVector.x, velocityVector.y);
+    context.lineTo( accelerationVector.x, accelerationVector.y);
+    context.stroke();
 
     context.beginPath();
     context.arc(centre.x, centre.y, size, 0, 2 * Math.PI, false);
@@ -225,12 +240,7 @@ function drawAt(position, velocity, acceleration, size, color) {
     context.strokeStyle = '#003300';
     context.stroke();
 
-    //draw velocity vector
-    context.beginPath();
-    context.lineWidth=1;
-    context.moveTo( centre.x, centre.y);
-    context.lineTo( velocityVector.x, velocityVector.y);
-    context.stroke();
+    
 
     // context.beginPath();
     // context.lineWidth = "1";
