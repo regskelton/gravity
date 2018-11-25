@@ -28,7 +28,7 @@ var sunMass = 19884700000 * massUnit;
 
 var things = [
  //   new Thing([0, 0], [2, 1], 1, 5, 'red'),
-    new Thing([20, 90], [15 * Math.pow(10,3), 10 * Math.pow(10,3)], earthMass, 5, 'green'),
+    new Thing([20, 90], [15 * Math.pow(10,3), 13 * Math.pow(10,3)], earthMass, 5, 'green'),
     new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], sunMass, 15, 'yellow'),
 //    new Thing([50, 200], [4, 2], 2, 20, 'violet'),
  //   new Thing([100, 70], [1, 3], moonMass, 1, 'grey')
@@ -37,11 +37,13 @@ var things = [
 var edges = [0, solarSystem.width, 0, solarSystem.height];
 
 // How much are we speeded up?
-var timeFactor= Math.pow(10,4);
+var timeFactor= Math.pow(10,5);
 
 function move(thing) {
-    for (i = 0; i < 2; i++) {
-        thing.position[i] += thing.velocity[i] * timeFactor;
+    for (d = 0; d < 2; d++) {
+        thing.velocity[d]+= thing.acceleration[d] * timeFactor;
+
+        thing.position[d] += thing.velocity[d] * timeFactor;
     }
 }
 
@@ -178,11 +180,6 @@ function clockTick() {
                 }
             }
         }
-
-        // apply total acceleration vector to velocity vector
-        for( d=0; d < 2; d++) {
-            things[i].velocity[d]+= things[i].acceleration[d];
-        }
     }
 
     clearCanvas();
@@ -219,8 +216,8 @@ function drawAt(position, velocity, acceleration, size, color) {
     }
 
     var accelerationVector = {
-        x: velocityVector.x + acceleration[0] * accelerationScale,
-        y: velocityVector.y + acceleration[1] * accelerationScale
+        x: centre.x + acceleration[0] * accelerationScale,
+        y: centre.y + acceleration[1] * accelerationScale
     }
 
 
@@ -228,15 +225,24 @@ function drawAt(position, velocity, acceleration, size, color) {
     context.beginPath();
     context.lineWidth=1;
     context.moveTo( centre.x, centre.y);
+    context.setLineDash([]);
     context.lineTo( velocityVector.x, velocityVector.y);
+    context.stroke();
+
+    context.beginPath();
+    context.lineWidth=1;
+    context.moveTo( centre.x, centre.y);
+    context.setLineDash([2,1]);
     context.lineTo( accelerationVector.x, accelerationVector.y);
     context.stroke();
+
 
     context.beginPath();
     context.arc(centre.x, centre.y, size, 0, 2 * Math.PI, false);
     context.fillStyle = color;
     context.fill();
     context.lineWidth = 1;
+    context.setLineDash([]);
     context.strokeStyle = '#003300';
     context.stroke();
 
@@ -264,7 +270,7 @@ function newThing() {
     things.push( thing);
 }
 
-setInterval(clockTick, 10);
+setInterval(clockTick, 30);
 //setInterval(newThing, 30);
 setInterval( updateFigures, 500);
 
