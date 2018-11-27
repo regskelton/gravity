@@ -7,8 +7,8 @@ var context = canvas.getContext('2d');
 var earthOrbitalRadius = 146 * Math.pow(10,9);
 
 var solarSystem = {
-    width: 10 * earthOrbitalRadius,
-    height: 10 * earthOrbitalRadius
+    width: 3 * earthOrbitalRadius,
+    height: 3 * earthOrbitalRadius
 }
 
 function Thing(initialPosition, initialVelocity, mass, size, color) {
@@ -28,9 +28,9 @@ var sunMass = 19884700000 * massUnit;
 
 var things = [
  //   new Thing([0, 0], [2, 1], 1, 5, 'red'),
- new Thing([solarSystem.width/3, solarSystem.height/3], [15 * Math.pow(10,3), 13 * Math.pow(10,3)], moonMass, 1, 'grey'),
- new Thing([20, 90], [15 * Math.pow(10,3), 13 * Math.pow(10,3)], earthMass, 5, 'green'),
- new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], sunMass, 15, 'yellow')
+ //   new Thing([solarSystem.width/2 - 384400000, solarSystem.height/2 - earthOrbitalRadius], [30 * Math.pow(10,3), -3.683 * Math.pow(10,3)], moonMass, 2, 'grey'),
+    new Thing([solarSystem.width/2, solarSystem.height/2 - earthOrbitalRadius], [30 * Math.pow(10,3), 0], earthMass, 5, 'green'),
+    new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], sunMass, 15, 'yellow')
 //    new Thing([50, 200], [4, 2], 2, 20, 'violet'),
     ]
 
@@ -187,8 +187,6 @@ function clockTick() {
     for (n = 0; n < things.length; n++) {
         draw(things[n]);
     }
-
-//    updateFigures();
 }
 
 
