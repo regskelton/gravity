@@ -5,6 +5,7 @@ var canvas = document.getElementById('canvas');
 var context = canvas.getContext('2d');
 
 var earthOrbitalRadius = 146 * Math.pow(10,9);
+var moonOrbitalRadius = 384.4 * Math.pow(10,6);
 
 var solarSystem = {
     width: 3 * earthOrbitalRadius,
@@ -22,28 +23,32 @@ function Thing(initialPosition, initialVelocity, mass, size, color) {
 
 // mass in units of 10^20kg
 var massUnit= Math.pow(10,20);
-var moonMass = 734 * massUnit;
-var earthMass = 59720 * massUnit;
-var sunMass = 19884700000 * massUnit;
+var moonMass = 7.34767309 * Math.pow(10,22);
+var earthMass = 5.9720 * Math.pow(10,24);
+var sunMass = 1.9884700000 * Math.pow(10,30);
+
 
 var things = [
  //   new Thing([0, 0], [2, 1], 1, 5, 'red'),
- //   new Thing([solarSystem.width/2 - 384400000, solarSystem.height/2 - earthOrbitalRadius], [30 * Math.pow(10,3), -3.683 * Math.pow(10,3)], moonMass, 2, 'grey'),
-    new Thing([solarSystem.width/2, solarSystem.height/2 - earthOrbitalRadius], [30 * Math.pow(10,3), 0], earthMass, 5, 'green'),
-    new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], sunMass, 15, 'yellow')
-//    new Thing([50, 200], [4, 2], 2, 20, 'violet'),
+   //new Thing([solarSystem.width/2 - moonOrbitalRadius, solarSystem.height/2], [0, 1.0230556], moonMass, 2, 'grey'),
+   // new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], earthMass, 5, 'green'),
+
+   new Thing([solarSystem.width/2, solarSystem.height/2 - earthOrbitalRadius], [29.8 * Math.pow(10,3), 0], earthMass, 5, 'green'),
+   new Thing([solarSystem.width/2, solarSystem.height/2 - earthOrbitalRadius - moonOrbitalRadius], [29.8 * Math.pow(10,3) + 1.023 * Math.pow(10,3),0], moonMass, 4, 'grey'),
+   new Thing([solarSystem.width/2, solarSystem.height/2], [0, 0], sunMass, 15, 'yellow')
+  //  new Thing([50, 200], [0, 0], 0, 20, 'violet'),
     ]
 
 var edges = [0, solarSystem.width, 0, solarSystem.height];
 
 // How much are we speeded up?
-var timeFactor= Math.pow(10,5);
+var timeFactor= Math.pow(10,4);
 
 function move(thing) {
     for (d = 0; d < 2; d++) {
-        thing.velocity[d]+= thing.acceleration[d] * timeFactor;
+        thing.velocity[d]+= thing.acceleration[d];
 
-        thing.position[d] += thing.velocity[d] * timeFactor;
+        thing.position[d] += thing.velocity[d];
     }
 }
 
@@ -62,15 +67,15 @@ function bounce(thing) {
     // }
 
     //wrap
-    for (i = 0; i < 2; i++) {
-        if (thing.position[i] < edges[i * 2]) {
-            thing.position[i] = edges[i * 2+1];
-        }
+    // for (i = 0; i < 2; i++) {
+    //     if (thing.position[i] < edges[i * 2]) {
+    //         thing.position[i] = edges[i * 2+1];
+    //     }
 
-        if (thing.position[i] > edges[i * 2 + 1]) {
-            thing.position[i] = edges[i * 2];
-        }
-    }
+    //     if (thing.position[i] > edges[i * 2 + 1]) {
+    //         thing.position[i] = edges[i * 2];
+    //     }
+    // }
 
 
 }
@@ -84,34 +89,53 @@ function updateFigures() {
 
     var momentumText='';
     var kineticText='';
-    var sep='';
+    
+    var momentum= [];
+    var kinetic= [];
 
     for( d =0 ; d < 2; d++){
-        var momentum= 0;
-        var kinetic=0;
+        momentum.push(0);
+        kinetic.push(0);
 
         for (i = 0; i < things.length; i++) {
-            momentum += things[i].mass * things[i].velocity[d];
-
-            kinetic += things[i].mass * things[i].velocity[d]* things[i].velocity[d] / 2;
+            momentum[d] += things[i].mass * things[i].velocity[d];
+            
+            kinetic[d] += (things[i].mass * things[i].velocity[d]* things[i].velocity[d]) /2;
         }
-
-        momentumText+= sep + momentum.toFixed(3);
-        kineticText+= sep + kinetic.toFixed(3);
-
-        sep=', ';
     }
 
+    var momentumPolar= toPolar(momentum);
+    var kineticPolar= toPolar(kinetic);
+
     dimensionsDOM.innerHTML = '2';
-    momentumDOM.innerHTML= momentumText;
-    kineticDOM.innerHTML = kineticText;
+    momentumDOM.innerHTML= momentumPolar.scalar.toFixed(3) + ' @ ' + Math.round(momentumPolar.angle * 180/Math.PI) + '&deg;';
+    kineticDOM.innerHTML= kineticPolar.scalar.toFixed(3) + ' @ ' + Math.round(kineticPolar.angle * 180/Math.PI) + '&deg;';
+}
+
+function toPolar( inputVector)
+{
+    var sumOfSquares=0;
+
+    for( d=0; d < inputVector.length; d++)
+    {
+        sumOfSquares += inputVector[d] * inputVector[d];
+    }
+
+    //todo: generalise angle
+    return { scalar: Math.sqrt(sumOfSquares), angle: Math.atan(inputVector[1]/inputVector[0])};
 }
 
 function clockTick() {
+        for( t=0; t < timeFactor; t++) {
+        for (n = 0; n < things.length; n++)            {
+            move(things[n]);
+        }
+    }
+
     for (n = 0; n < things.length; n++) {
-        move(things[n]);
         bounce(things[n]);
     }
+
 
     //check for collisions
     // for (i = 0; i < things.length; i++) {
@@ -147,36 +171,39 @@ function clockTick() {
 
     var bigG= 6.67408 * Math.pow(10,-11);
 
-    //apply gravity
     for (i = 0; i < things.length; i++) {
         
-        // Clear existing acceleration vector
+        // Clear existing acceleration vectors
         for( d=0; d < 2; d++) {
             things[i].acceleration[d]= 0;
         }
+    }
 
+    //apply gravity
+    for (i = 0; i < things.length; i++) {
+        
         // Add acceleration due to each other object
-        for (j = i; j < things.length; j++) {
+        for (j = i+1; j < things.length; j++) {
             if( i !== j) { //no self acceleration
                 var rSquared= 0;
 
-                // General pythagorus is the rot of the sum of 
+                // Pythagorean / Euclidean distance is the root of the sum of 
                 // the squares of distances in each dimension
                 for( d=0; d < 2; d++) {
                     rSquared +=  (things[j].position[d] - things[i].position[d]) * (things[j].position[d] - things[i].position[d])
                 }
 
                 // gravitationalForce = (G x Mi x Mj) / r^2
-                // and f = ma => a = f/m 
-                // => accelerationScalar = gravitiationalFroce / Mi 
-                //                       = (G x Mj) / r^2
-                var accelerationScalar = bigG * things[j].mass / rSquared;
+                var gravitationalForce = bigG * things[i].mass * things[j].mass / rSquared;
 
                 var r = Math.sqrt(rSquared);
 
                 //apply accelerationScalar projected to each dimension
+                //...and mutually opposite
                 for( d=0; d < 2; d++) {
-                    things[i].acceleration[d] += accelerationScalar * (things[j].position[d] - things[i].position[d])/r;
+                    things[i].acceleration[d] += gravitationalForce * ((things[j].position[d] - things[i].position[d])/r) / things[i].mass;
+
+                    things[j].acceleration[d] += gravitationalForce * ((things[i].position[d] - things[j].position[d])/r) / things[j].mass;
                 }
             }
         }
@@ -195,7 +222,7 @@ function draw(thing) {
 }
 
 var velocityScale= Math.pow(10,-3);
-var accelerationScale= Math.pow( 10, 5);
+var accelerationScale= 2.5 * Math.pow( 10, 4);
 
 function drawAt(position, velocity, acceleration, size, color) {
     var scale= {
@@ -259,9 +286,10 @@ function clearCanvas() {
 }
 
 function newThing() {
-    var thing = new Thing([Math.random() * 600, Math.random() * 600],
-        [Math.random() * 10, Math.random() * 10],
-        0,
+    var thing = new Thing(
+        [solarSystem.width / (Math.random() * 600), solarSystem.height / (Math.random() * 600)],
+        [solarSystem.width / (Math.random() * 250) / timeFactor, solarSystem.height / (Math.random() * 250) / timeFactor],
+        sunMass * (0.1 * Math.random()),
         Math.random() * 25,
         'red');
 
@@ -269,8 +297,12 @@ function newThing() {
 }
 
 setInterval(clockTick, 30);
-//setInterval(newThing, 30);
+//setInterval(newThing, 10000);
 setInterval( updateFigures, 500);
+
+for (j = 0; j < 1; j++) {
+   // newThing();
+}
 
 //drawAt( 100, 100);
 
