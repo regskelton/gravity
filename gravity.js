@@ -116,10 +116,12 @@ var universe = (function () {
         applyGravity: function () {
 
             for (i = 0; i < things.length; i++) {
-                // Clear existing acceleration vectors
+                // Clear existing acceleration vectors & potentials
                 for (d = 0; d < nDims; d++) {
                     things[i].acceleration[d] = 0;
                 }
+
+                things[i].potentialEnergy = 0;
             }
 
             //apply gravity
@@ -136,10 +138,15 @@ var universe = (function () {
                             rSquared += (things[j].position[d] - things[i].position[d]) * (things[j].position[d] - things[i].position[d])
                         }
 
+                        var r = Math.sqrt(rSquared);
+
+                        // gravitational potential = - (G x Mi x Mj) / r
+                        var gravitationalPotential = -bigG * things[i].mass * things[j].mass / r;
+
+                        things[i].potentialEnergy += gravitationalPotential;
+
                         // gravitationalForce = (G x Mi x Mj) / r^2
                         var gravitationalForce = bigG * things[i].mass * things[j].mass / rSquared;
-
-                        var r = Math.sqrt(rSquared);
 
                         //apply accelerationScalar projected to each dimension
                         //...and mutually opposite
@@ -154,23 +161,28 @@ var universe = (function () {
         },
 
         getMetrics: function () {
-            var momentumArray = [];
-            var kineticArray = [];
+            var momentumArray = []; // momentum is a vector
+            var kinetic = 0;
+            var potential = 0;
 
             for (d = 0; d < nDims; d++) {
-                momentumArray.push(0);
-                kineticArray.push(0);
+                momentumArray[d] = 0;
+            }
 
-                for (i = 0; i < things.length; i++) {
+            for (i = 0; i < things.length; i++) {
+                for (d = 0; d < nDims; d++) {
                     momentumArray[d] += things[i].mass * things[i].velocity[d];
 
-                    kineticArray[d] += (things[i].mass * things[i].velocity[d] * things[i].velocity[d]) / 2;
+                    kinetic += (things[i].mass * things[i].velocity[d] * things[i].velocity[d]) / 2;
                 }
+
+                potential += things[i].potentialEnergy;
             }
 
             return {
                 momentum: toPolar(momentumArray),
-                kineticEnergy: toPolar(kineticArray)
+                kineticEnergy: kinetic,
+                potentialEnery: potential
             };
         },
 
@@ -193,28 +205,56 @@ var uiController = (function () {
         kinetic: document.querySelector('.info__kinetic--value'),
         potential: document.querySelector('.info__potential--value'),
         total: document.querySelector('.info__total--value'),
+        time: document.querySelector('.info__time--value'),
         item_list: document.querySelector('.item__list'),
     };
 
     var velocityScale = Math.pow(10, -3);
     var accelerationScale = 2.5 * Math.pow(10, 4);
 
-
     function formatLargeNumber(num, dp) {
-        var log= Math.log10(num);
+        var sign = '';
+
+        if (num < 0) {
+            num = -num;
+
+            sign = '-';
+        }
+
+        var log = Math.log10(num);
 
         var exp = Math.floor(log);
-        var mantissa = Math.pow( 10, log - exp).toFixed(dp);
+        var mantissa = Math.pow(10, log - exp).toFixed(dp);
 
         //var numText = "" + num;
 
         //var mantissa = numText[0] + "." + numText.slice(2, 2 + dp);
 
-        //console.log( num, dp, mantissa, ":", exp);
+        //console.log( num, dp, sign, mantissa, ":", exp);
 
-        return mantissa + ":" + exp;
+        return sign + mantissa + ":" + exp;
     }
 
+    function formatTime( time) {
+        const seconds_per_year = 365 * 24 * 60 * 60;
+        const seconds_per_day = 24 * 60 * 60;
+        const seconds_per_hour = 60 * 60;
+        const seconds_per_minute = 60;
+
+        var years = Math.floor( time / seconds_per_year);
+        time = time - years * seconds_per_year;
+
+        var days = Math.floor( time / seconds_per_day);
+        time = time - days * seconds_per_day;
+
+        var hours = Math.floor( time / seconds_per_hour);
+        time= time - hours * seconds_per_hour;
+
+        var mins= Math.floor( time / seconds_per_minute);
+        time= time - mins * seconds_per_minute;
+
+        return `${years} years, ${days} days, ${hours}:${mins}:${time}`;
+    }
 
     var toPolar = function (inputVector) {
         var sumOfSquares = 0;
@@ -286,10 +326,13 @@ var uiController = (function () {
             context.stroke();
         },
 
-        updateText: function (nDims, momentumPolar, kineticEnergyPolar) {
+        updateText: function (nDims, momentumPolar, kineticEnergy, potentialEnergy, time) {
             DOM.dimensions.innerHTML = nDims;
-            DOM.momentum.innerHTML = formatLargeNumber(momentumPolar.scalar, 4) + ' @ ' + Math.round(momentumPolar.angle * 180 / Math.PI) + '&deg;';
-            DOM.kinetic.innerHTML = formatLargeNumber(kineticEnergyPolar.scalar, 4) + ' @ ' + Math.round(kineticEnergyPolar.angle * 180 / Math.PI) + '&deg;';
+            DOM.momentum.innerHTML = formatLargeNumber(momentumPolar.scalar, 12) + ' @ ' + Math.round(momentumPolar.angle * 180 / Math.PI) + '&deg;';
+            DOM.kinetic.innerHTML = formatLargeNumber(kineticEnergy, 12);
+            DOM.potential.innerHTML = formatLargeNumber(potentialEnergy, 12);
+            DOM.total.innerHTML = formatLargeNumber(potentialEnergy + kineticEnergy, 12);
+            DOM.time.innerHTML = formatTime(time);
         },
 
         addSomething: function (name, position, velocity, mass, size, color) {
@@ -330,9 +373,9 @@ var uiController = (function () {
             things[i].color
             */
             var tr = document.getElementById('item-' + name);
-            tr.getElementsByClassName('item__orbit')[0].innerHTML = formatLargeNumber( toPolar(position).scalar, 4);
-            tr.getElementsByClassName('item__speed')[0].innerHTML = formatLargeNumber( toPolar(velocity).scalar, 4);
-            tr.getElementsByClassName('item__mass')[0].innerHTML = formatLargeNumber( mass,4);
+            tr.getElementsByClassName('item__orbit')[0].innerHTML = formatLargeNumber(toPolar(position).scalar, 4);
+            tr.getElementsByClassName('item__speed')[0].innerHTML = formatLargeNumber(toPolar(velocity).scalar, 4);
+            tr.getElementsByClassName('item__mass')[0].innerHTML = formatLargeNumber(mass, 4);
             tr.getElementsByClassName('item__size')[0].innerHTML = size;
             tr.getElementsByClassName('item__color')[0].innerHTML = color;
         }
@@ -348,7 +391,25 @@ var thingsConfig = [{
         "speed": "0",
         "parent": "",
         "color": "yellow",
-        "size": "15"
+        "size": "5"
+    },
+    {
+        "name": "mercury",
+        "mass": "0.330:24",
+        "orbit": "57.9:9",
+        "speed": "47.4:3",
+        "parent": "sun",
+        "color": "red",
+        "size": "1"
+    },
+    {
+        "name": "venus",
+        "mass": "4.870:24",
+        "orbit": "108.2:9",
+        "speed": "35.0:3",
+        "parent": "sun",
+        "color": "green",
+        "size": "4"
     },
     {
         "name": "earth",
@@ -356,8 +417,8 @@ var thingsConfig = [{
         "orbit": "146:9",
         "speed": "29.8:3",
         "parent": "sun",
-        "color": "green",
-        "size": "5"
+        "color": "blue",
+        "size": "4"
     },
     {
         "name": "moon",
@@ -367,7 +428,62 @@ var thingsConfig = [{
         "parent": "earth",
         "color": "grey",
         "size": "2"
-    }
+    },
+    {
+        "name": "mars",
+        "mass": "0.642:24",
+        "orbit": "227.9:9",
+        "speed": "24.1:3",
+        "parent": "sun",
+        "color": "red",
+        "size": "2"
+    },
+    {
+        "name": "jupiter",
+        "mass": "1898:24",
+        "orbit": "778.6:9",
+        "speed": "13.1:3",
+        "parent": "sun",
+        "color": "orange",
+        "size": "4"
+    },
+    {
+        "name": "saturn",
+        "mass": "568:24",
+        "orbit": "1433.5:9",
+        "speed": "9.7:3",
+        "parent": "sun",
+        "color": "yellow",
+        "size": "4"
+    },
+    {
+        "name": "uranus",
+        "mass": "86.8:24",
+        "orbit": "2872.5:9",
+        "speed": "6.8:3",
+        "parent": "sun",
+        "color": "green",
+        "size": "2"
+    },
+    {
+        "name": "neptune",
+        "mass": "102:24",
+        "orbit": "4495.1:9",
+        "speed": "5.4:3",
+        "parent": "sun",
+        "color": "blue",
+        "size": "2"
+    },
+    {
+        "name": "pluto",
+        "mass": "0.0146:24",
+        "orbit": "5906.4:9",
+        "speed": "4.7:3",
+        "parent": "sun",
+        "color": "grey",
+        "size": "2"
+    },
+
 ];
 
 
@@ -436,11 +552,15 @@ var controller = (function (uni, UICtrl) {
 
     var scale = 3 * earthOrbitalRadius;
 
+    var time = 0; //seconds
+
     // How much are we speeded up?
     var timeFactor = Math.pow(10, 4);
 
     var clockTick = function () {
         for (t = 0; t < timeFactor; t++) {
+            time++;
+
             uni.moveAll();
 
             //uni.wrapAll();
@@ -479,7 +599,7 @@ var controller = (function (uni, UICtrl) {
             setInterval(function () {
                 var metrics = uni.getMetrics();
 
-                UICtrl.updateText(nDims, metrics.momentum, metrics.kineticEnergy);
+                UICtrl.updateText(nDims, metrics.momentum, metrics.kineticEnergy, metrics.potentialEnery, time);
 
                 uni.getThings().forEach(function (thing) {
                     UICtrl.updateSomethingText(thing.name, thing.position, thing.velocity, thing.mass, thing.size, thing.color);
