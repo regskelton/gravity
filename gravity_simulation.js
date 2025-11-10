@@ -154,15 +154,6 @@ var thingsConfig = [
         parent: null
     },
     {
-        name: "Moon",
-        mass: "7.342e22",
-        orbit: "3.844e8",
-        speed: "1022",
-        size: 4,
-        color: "#C0C0C0",
-        parent: "Earth"
-    },
-    {
         name: "Mars",
         mass: "6.39e23",
         orbit: "2.279e11",
@@ -223,30 +214,25 @@ function initSimulation() {
         var orbit = deFormat(thing.orbit);
         var speed = deFormat(thing.speed);
         
-        // Handle parent bodies (like Moon orbiting Earth)
-        var parentX = 0, parentY = 0, parentZ = 0;
-        var parentVx = 0, parentVy = 0, parentVz = 0;
+        // Randomize the starting angle for each planet
+        var randomAngle = Math.random() * 2 * Math.PI;
         
-        if (thing.parent) {
-            // Find the parent body
-            for (var j = 0; j < i; j++) {
-                if (thingsConfig[j].name === thing.parent) {
-                    var parentOrbit = deFormat(thingsConfig[j].orbit);
-                    var parentSpeed = deFormat(thingsConfig[j].speed);
-                    parentY = parentOrbit;
-                    parentVx = parentSpeed;
-                    break;
-                }
-            }
-        }
+        // Calculate position using polar coordinates
+        var posX = orbit * Math.cos(randomAngle);
+        var posY = orbit * Math.sin(randomAngle);
+        var posZ = 0;
+        
+        // Calculate velocity perpendicular to position (for circular orbit)
+        // Velocity is tangent to the circle, so perpendicular to radius
+        var velX = -speed * Math.sin(randomAngle);
+        var velY = speed * Math.cos(randomAngle);
+        var velZ = 0;
         
         // Create objects in 3D space
-        // Position: [x, y, z]
-        // Velocity: [vx, vy, vz]
         uni.createSomething(
             thing.name,
-            [parentX, parentY + orbit, parentZ],      // Position relative to parent
-            [parentVx + speed, parentVy, parentVz],   // Velocity relative to parent
+            [posX, posY, posZ],
+            [velX, velY, velZ],
             mass,
             thing.size,
             thing.color
@@ -258,7 +244,8 @@ function initSimulation() {
 var isPaused = false;
 var animationId = null;
 var useLogScale = true; // Toggle for logarithmic display scaling
-var cameraAngle = 0; // Angle in radians (0 = side view, π/2 = top view)
+var cameraAngle = 0; // Angle in radians for horizontal rotation
+var elevationAngle = Math.PI / 6; // Viewing angle from above (starts at 30 degrees)
 var cameraSpeed = 0.0005; // Speed of camera rotation
 var autoCameraRotate = true; // Whether camera rotates automatically
 var frameCount = 0;
@@ -270,8 +257,10 @@ function animate() {
         // Automatically rotate camera
         if (autoCameraRotate) {
             frameCount++;
-            // Oscillate between -60° and +60° using sine wave
-            cameraAngle = Math.sin(frameCount * cameraSpeed) * Math.PI / 3; // π/3 = 60 degrees
+            // Rotate horizontally around Z axis
+            cameraAngle = frameCount * cameraSpeed * 0.5;
+            // Oscillate elevation between 5° and 75° using sine wave
+            elevationAngle = (Math.sin(frameCount * cameraSpeed * 2) * 0.6 + 0.7) * Math.PI / 3;
         }
         
         render();
@@ -324,16 +313,13 @@ function render() {
         var dy = thing.position[1] - centerY;
         var dz = thing.position[2] - centerZ;
         
-        // Apply camera rotation - rotate around Z axis to tilt view up/down
-        // This rotates the X-Y plane (orbital plane) relative to viewer
+        // Apply camera rotation - rotate around Z axis (horizontal rotation)
         var rotatedX = dx * Math.cos(cameraAngle) - dy * Math.sin(cameraAngle);
         var rotatedY = dx * Math.sin(cameraAngle) + dy * Math.cos(cameraAngle);
         var rotatedZ = dz;
         
-        // Project onto screen with perspective
-        // The Y coordinate on screen includes the rotated Y position projected by viewing angle
-        var viewAngle = Math.PI / 6; // 30 degree viewing angle from above
-        var projectedY = rotatedY * Math.cos(viewAngle) + rotatedZ * Math.sin(viewAngle);
+        // Project onto screen with dynamic elevation angle
+        var projectedY = rotatedY * Math.cos(elevationAngle) + rotatedZ * Math.sin(elevationAngle);
         
         var screenX, screenY;
         
@@ -356,7 +342,7 @@ function render() {
             // Recalculate screen position with log scale
             var screenDist2D = visualDistance;
             screenX = width / 2 + screenDist2D * Math.cos(angle);
-            screenY = height / 2 + screenDist2D * Math.sin(angle) * Math.cos(viewAngle) + rotatedZ * baseScale * Math.sin(viewAngle);
+            screenY = height / 2 + screenDist2D * Math.sin(angle) * Math.cos(elevationAngle) + rotatedZ * baseScale * Math.sin(elevationAngle);
         } else {
             // Linear scaling
             screenX = width / 2 + rotatedX * baseScale;
@@ -403,18 +389,16 @@ function render() {
     ctx.fillText('Kinetic: ' + energy.kinetic.toExponential(2) + ' J', 10, 40);
     ctx.fillText('Potential: ' + energy.potential.toExponential(2) + ' J', 10, 60);
     ctx.fillText('Display: ' + (useLogScale ? 'Logarithmic Scale' : 'Linear Scale'), 10, 80);
-    ctx.fillText('Camera Rotation: ' + (cameraAngle * 180 / Math.PI).toFixed(0) + '°', 10, 100);
+    ctx.fillText('Elevation: ' + (elevationAngle * 180 / Math.PI).toFixed(0) + '° | Rotation: ' + (cameraAngle * 180 / Math.PI % 360).toFixed(0) + '°', 10, 100);
 }
 
 function drawGrid(ctx, width, height, centerX, centerY, centerZ, baseScale) {
-    var viewAngle = Math.PI / 6; // Match the viewing angle from render function
-    
     if (useLogScale) {
         // Logarithmic grid spacing
-        drawLogGrid(ctx, width, height, viewAngle);
+        drawLogGrid(ctx, width, height, elevationAngle);
     } else {
         // Linear grid spacing
-        drawLinearGrid(ctx, width, height, viewAngle);
+        drawLinearGrid(ctx, width, height, elevationAngle);
     }
 }
 
