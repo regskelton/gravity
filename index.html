@@ -1,56 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
+<div id="navigation"></div>
+<div id="listing"></div>
 
-<head>
-  <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:100,300,400,600" rel="stylesheet" type="text/css">
-  <link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet" type="text/css">
-  <link type="text/css" rel="stylesheet" href="style.css">
-  <title>Gravity</title>
-</head>
+<!-- add jQuery - if you already have it just ignore this line -->
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
-<body>
-  <div class="drawing">
-    <canvas class="planets" id="canvas" width="600" height="600"></canvas>
-  </div>
+<!-- the JS variables for the listing -->
+<script type="text/javascript">
+  var S3BL_IGNORE_PATH = false;
+  // var BUCKET_NAME = 'BUCKET';
+  var BUCKET_URL = 'http://schextern.s3-eu-west-2.amazonaws.com';
+  // var S3B_ROOT_DIR = 'SUBDIR_L1/SUBDIR_L2/';
+  // var S3B_SORT = 'DEFAULT';
+  // var EXCLUDE_FILE = 'index.html';  // change to array to exclude multiple files
+  // var AUTO_TITLE = true;
+  // var S3_REGION = 's3'; // for us-east-1
+</script>
 
-  <div class="info">
-    <table class="info">
-      <tr>
-        <td><div class="info__label">Dimensions</div></td>
-        <td><div class="info__dimensions--value">--2--</div></td>
-      </tr><tr>
-        <td><div class="info__label">Momentum</div></td>
-        <td><div class="info__momentum--value">1.2345:21</div></td>
-      </tr><tr>
-        <td><div class="info__label">Time</div></td>
-        <td><div class="info__time--value">yyyy:dddd:hh:mm:ss</div></td>
-      </tr><tr>
-        <td><div class="info__label">Kinetic E</div></td>
-        <td><div class="info__kinetic--value">1.2345:21</div></td>
-      </tr><tr>
-        <td><div class="info__label">Potential E</div></td>
-        <td><div class="info__potential--value">1.2345:21</div></td>
-      </tr><tr>
-        <td><div class="info__label">Total E</div></td>
-        <td><div class="info__total--value">1.2345:21</div></td>
-      </tr>
-    </table>
-  </div>
-
-  
-  <table class="item__list">
-    <tr class="item">
-      <th><div class="item__active">Active</div></th>
-      <th><div class="item__name">Name</div></th>
-      <th><div class="item__mass">Mass</div></th>
-      <th><div class="item__orbit">Orbit</div></th>
-      <th><div class="item__speed">Speed</div></th>
-      <th><div class="item__parent">Parent</div></th>
-      <th><div class="item__color">Color</div></th>
-      <th><div class="item__size">Size</div></th>
-      <th><div class="item__period">Period</div></th>
-    </tr>
-  </table>
-</body>
-<script src="gravity.js"></script>
+<!-- the JS to the do the listing -->
+<script type="text/javascript" src="https://rufuspollock.github.io/s3-bucket-listing/list.js"></script>

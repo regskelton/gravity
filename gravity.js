@@ -198,6 +198,7 @@ var uiController = (function () {
     var context = canvas.getContext('2d');
 
     var scale;
+    var useLoggedScale= true;
 
     var DOM = {
         dimensions: document.querySelector('.info__dimensions--value'),
@@ -207,10 +208,11 @@ var uiController = (function () {
         total: document.querySelector('.info__total--value'),
         time: document.querySelector('.info__time--value'),
         item_list: document.querySelector('.item__list'),
+        toggleScale: document.querySelector('.toggle__log__btn'),
     };
 
     var velocityScale = Math.pow(10, -3);
-    var accelerationScale = 2.5 * Math.pow(10, 4);
+    var accelerationScale = 2.5 * Math.pow(10, 3);
 
     function formatLargeNumber(num, dp) {
         var sign = '';
@@ -256,6 +258,12 @@ var uiController = (function () {
         return `${years} years, ${days} days, ${hours}:${mins}:${time}`;
     }
 
+    function toggleLogScale() {
+        useLoggedScale= ! useLoggedScale;
+
+        //DOM.toggleScale.value
+    }
+
     var toPolar = function (inputVector) {
         var sumOfSquares = 0;
 
@@ -263,11 +271,16 @@ var uiController = (function () {
             sumOfSquares += inputVector[d] * inputVector[d];
         }
 
-        //todo: generalise angle - not easy!
+        //todo: generalise angle for > 2d - not easy!
         return {
             scalar: Math.sqrt(sumOfSquares),
-            angle: Math.atan(inputVector[1] / inputVector[0])
+            angle: Math.atan(inputVector[1] / inputVector[0]) + (inputVector[0]<0 ? Math.PI : 0)
         };
+    }
+
+    var fromPolar= function( scalar, angle)
+    {
+        return [scalar * Math.cos(angle), scalar * Math.sin(angle)];
     }
 
     return {
@@ -277,6 +290,19 @@ var uiController = (function () {
             //var img = document.getElementById("background");
 
             //context.drawImage(img, 0, 0);
+
+            var tests=[
+                [3,4],
+                [3,-4],
+                [-3,4],
+                [-3,-4]
+            ];
+            tests.forEach( ele => {
+                console.log( ele, toPolar(ele), fromPolar(toPolar(ele).scalar, toPolar(ele).angle));
+                
+            });
+
+            DOM.toggleScale.addEventListener('click', toggleLogScale);
         },
 
         clearScreen: function () {
@@ -286,9 +312,20 @@ var uiController = (function () {
         draw: function (position, velocity, acceleration, size, color) {
             //console.log(color);
 
+            var myScale= scale;
+            
+            if(useLoggedScale)
+            {
+                var polarCentre= toPolar(position);
+
+                position= fromPolar( Math.log10( polarCentre.scalar), polarCentre.angle);
+    
+                myScale= 2 * Math.log10(scale);
+            }
+
             var centre = {
-                x: ((position[0] + scale / 2) / scale) * canvas.width,
-                y: canvas.height - ((position[1] + scale / 2) / scale) * canvas.height
+                x: ((position[0] + myScale / 2) / myScale) * canvas.width,
+                y: canvas.height - ((position[1] + myScale / 2) / myScale) * canvas.height
             }
 
             var velocityVector = {
@@ -317,7 +354,7 @@ var uiController = (function () {
             context.stroke();
 
             context.beginPath();
-            context.arc(centre.x, centre.y, size, 0, 2 * Math.PI, false);
+            context.arc( centre.x, centre.y, size, 0, 2 * Math.PI, false);
             context.fillStyle = color;
             context.fill();
             context.lineWidth = 1;
@@ -550,7 +587,7 @@ var controller = (function (uni, UICtrl) {
 
     var earthOrbitalRadius = 146 * Math.pow(10, 9);
 
-    var scale = 3 * earthOrbitalRadius;
+    var scale = 2 * 6000 * Math.pow(10,9);
 
     var time = 0; //seconds
 

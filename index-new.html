@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:100,300,400,600" rel="stylesheet" type="text/css">
+  <link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet" type="text/css">
+  <link type="text/css" rel="stylesheet" href="style.css">
+  <title>Gravity</title>
+</head>
+
+<body>
+  <div class="drawing">
+    <canvas class="planets" id="canvas" width="600" height="600"></canvas>
+  </div>
+
+  <div class="info">
+    <table class="info">
+      <tr>
+        <td><div class="info__label">Dimensions</div></td>
+        <td><div class="info__dimensions--value">--2--</div></td>
+      </tr><tr>
+        <td><div class="info__label">Momentum</div></td>
+        <td><div class="info__momentum--value">1.2345:21</div></td>
+      </tr><tr>
+        <td><div class="info__label">Time</div></td>
+        <td><div class="info__time--value">yyyy:dddd:hh:mm:ss</div></td>
+      </tr><tr>
+        <td><div class="info__label">Kinetic E</div></td>
+        <td><div class="info__kinetic--value">1.2345:21</div></td>
+      </tr><tr>
+        <td><div class="info__label">Potential E</div></td>
+        <td><div class="info__potential--value">1.2345:21</div></td>
+      </tr><tr>
+        <td><div class="info__label">Total E</div></td>
+        <td><div class="info__total--value">1.2345:21</div></td>
+      </tr>
+      <div class="control__container">
+        <button class="toggle_log__btn"><i class="ion-ios-checkmark-outline">Toggle linear / log scaling</i></button>
+    </div>
+    </table>
+  </div>
+
+  
+  <table class="item__list">
+    <tr class="item">
+      <th><div class="item__active">Active</div></th>
+      <th><div class="item__name">Name</div></th>
+      <th><div class="item__mass">Mass</div></th>
+      <th><div class="item__orbit">Orbit</div></th>
+      <th><div class="item__speed">Speed</div></th>
+      <th><div class="item__parent">Parent</div></th>
+      <th><div class="item__color">Color</div></th>
+      <th><div class="item__size">Size</div></th>
+      <th><div class="item__period">Period</div></th>
+    </tr>
+  </table>
+</body>
+<script src="gravity.js"></script>

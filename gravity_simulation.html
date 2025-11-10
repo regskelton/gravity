@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Gravity Simulation</title>
+    <link rel="stylesheet" href="styled_components.css">
+</head>
+<body>
+    <div class="container">
+        <h1>3D Gravity Simulation</h1>
+        <div class="controls">
+            <button id="pauseBtn" onclick="togglePause()">Pause</button>
+            <button onclick="resetSimulation()">Reset</button>
+            <label>
+                Time Step (hours): 
+                <input type="range" id="timeStep" min="0.1" max="10" step="0.1" value="1" 
+                       oninput="uni.setTimeStep(this.value * 3600); document.getElementById('timeStepValue').textContent = this.value;">
+                <span id="timeStepValue">1</span>
+            </label>
+        </div>
+        <canvas id="universe" width="1200" height="800"></canvas>
+        <div class="info">
+            <h3>Simulation Info</h3>
+            <p>This is a real-time 3D N-body gravity simulation using Newton's law of universal gravitation.</p>
+            <p>The simulation calculates gravitational forces between all bodies and updates their positions in 3D space.</p>
+            <h4>Solar System Bodies:</h4>
+            <ul>
+                <li><strong style="color: #FDB813;">●</strong> Sun - 1.989×10³⁰ kg</li>
+                <li><strong style="color: #8C7853;">●</strong> Mercury - Closest to the Sun, fastest orbit</li>
+                <li><strong style="color: #FFC649;">●</strong> Venus - Hottest planet, retrograde rotation</li>
+                <li><strong style="color: #4169E1;">●</strong> Earth - Our home planet</li>
+                <li><strong style="color: #CD5C5C;">●</strong> Mars - The Red Planet</li>
+                <li><strong style="color: #DAA520;">●</strong> Jupiter - Largest planet, gas giant</li>
+                <li><strong style="color: #F4A460;">●</strong> Saturn - Famous for its rings</li>
+                <li><strong style="color: #4FD0E7;">●</strong> Uranus - Ice giant, tilted axis</li>
+                <li><strong style="color: #4169E1;">●</strong> Neptune - Furthest planet, deep blue</li>
+            </ul>
+        </div>
+    </div>
+    <script src="gravity_simulation.js"></script>
+</body>
+</html>
